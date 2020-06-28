@@ -2,7 +2,7 @@
     <div class="browser">
         <!-- <h1>{{ msg }}</h1> -->
         <div id="container" class="renderer_area"></div>
-        <!-- <button id="read-file-in-nodejs" @click="ReadLocalModel()">Import</button> -->
+        <input type="file" id="files" @change="ReadLocalFile()" />
     </div>
 </template>
 
@@ -13,6 +13,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import * as THREE from "three";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import path from "path";
 
 @Component
 export default class Browser extends Vue {
@@ -48,6 +49,22 @@ export default class Browser extends Vue {
     destroyed() {
         // 何か処理
     }
+
+    ReadLocalFile() {
+        const selectedFile = document.getElementById("files")["files"][0];
+        const name = selectedFile.name; //读取选中文件的文件名
+        const size = selectedFile.size; //读取选中文件的大小
+        console.log("文件名:" + name + "大小:" + size);
+        console.log(Object.keys(selectedFile));
+        const reader = new FileReader(); //这是核心,读取操作就是由它完成.
+        // reader.readAsText(selectedFile); //读取文件的内容,也可以读取文件的URL
+        reader.readAsDataURL(selectedFile);
+        reader.onload = function() {
+            //当读取完成后回调这个函数,然后此时文件的内容存储到了result中,直接操作即可
+            console.log("Content: " + this.result);
+        };
+    }
+
     initialize() {
         let texture: any = null;
         const loadModel = () => {
