@@ -1,4 +1,4 @@
-# Template Of Electron In Vue+Typescript Project 2.0
+# 3D Model Viewer
 
 ## Project setup
 ```
