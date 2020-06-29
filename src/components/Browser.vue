@@ -13,9 +13,8 @@ import { remote } from "electron";
 import * as THREE from "three";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
-import path from "path";
-
 import Loader from "../Loader";
+import { Object3D } from "three";
 
 @Component
 export default class Browser extends Vue {
@@ -26,7 +25,6 @@ export default class Browser extends Vue {
 
     // container: any = document.getElementById("container");
 
-    // private textureFileContent: any;
     private objFileContent: any;
 
     private loader = new Loader();
@@ -40,12 +38,9 @@ export default class Browser extends Vue {
 
     created() {
         // 何か処理
-        // this.textureFileContent = remote.getGlobal("textureFileContent");
         this.objFileContent = window
             .require("electron")
             .remote.getGlobal("objFileContent");
-        // console.log("obj: " + this.objFileContent);
-        // console.log("obj: " + this.textureFileContent);
     }
 
     mounted() {
@@ -79,78 +74,47 @@ export default class Browser extends Vue {
     }
 
     initialize() {
-        let texture: any = null;
-        const loadModel = () => {
-            this.object.traverse((child: any) => {
-                if (child.isMesh) child.material.map = texture;
-            });
+        // this.camera = new THREE.PerspectiveCamera(
+        //     70,
+        //     window.innerWidth / window.innerHeight,
+        //     1,
+        //     10000
+        // );
+        // this.camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
+        this.camera = new THREE.PerspectiveCamera(70, 1, 0.01, 10000);
 
-            this.object.position.x = 999;
-            this.object.position.y = 998;
-            this.object.position.z = 999;
-
-            this.scene.add(this.object);
-        };
-
-        const manager = new THREE.LoadingManager(loadModel);
-
-        const textureLoader = new THREE.TextureLoader(manager);
-
-        texture = textureLoader.load("../assests/01.jpg");
-
-        this.camera = new THREE.PerspectiveCamera(
-            70,
-            window.innerWidth / window.innerHeight,
-            1,
-            10000
-        );
-
-        this.camera.position.x = 1000;
-        this.camera.position.y = 1000;
-        this.camera.position.z = 1000;
-
+        // this.camera.position.x = 1000;
+        // this.camera.position.y = 1000;
+        // this.camera.position.z = 1000;
+        // this.camera.position.set(0, 5, 10);
+        this.camera.position.set(0, 0, 2);
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x056000);
 
         this.scene.add(new THREE.AmbientLight(0xfffff5));
 
         const light: any = new THREE.SpotLight(0xffffff, 1.5);
-        // const light: any = new THREE.SpotLight(0xff5500, 1.5);
-        light.position.set(1003, 1002, 1002);
+        // light.position.set(1003, 1002, 1002);
+        light.position.set(5, 10, 7.5);
         this.scene.add(light);
 
-        manager.onProgress = function(item, loaded, total) {
-            console.log(item, loaded, total);
-        };
+        const readableFile = new Blob([this.objFileContent]);
 
-        function onProgress() {
-            console.log("progressing...");
-        }
+        // console.log("readableFile : " + readableFile);
+        // console.log("origianleFile : " + this.objFileContent);
 
-        function onError() {
-            console.log("error happened!");
-        }
-
-        this.loader.parseFile(this.objFileContent, "fbx", function() {
-            console.log("loaded!");
+        this.loader.parseFile(readableFile, "obj", function(
+            loadedObject: Object3D
+        ) {
+            console.log("loaded!" + Object.keys(loadedObject));
+            loadedObject.position.set(0, 0, 0);
+            loadedObject.scale.set(1, 1, 1);
+            // console.log(loadedObject.type);
         });
-
-        // const loader = new OBJLoader(manager);
-        // loader.load(
-        //     "D:/4-th_Grade/3DModelViewersrcassets/assests/tree.obj",
-        //     // "../assests/tree.obj",
-        //     obj => {
-        //         this.object = obj;
-        //         console.log("Done!!!!!");
-        //     },
-        //     onProgress,
-        //     onError
-        // );
 
         this.renderer = new THREE.WebGLRenderer({
             //将渲染保存到缓冲区，否则获取的图片会是空的
-            preserveDrawingBuffer: true, //是否保留缓冲区直到手动清除或覆盖。默认值为false
-
+            preserveDrawingBuffer: false, //是否保留缓冲区直到手动清除或覆盖。默认值为false
             antialias: true
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);

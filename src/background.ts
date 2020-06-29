@@ -143,7 +143,6 @@ globalAny.myServer = tcp;
 
 import { readFileSync } from "fs";
 
-const objFileContent = readFileSync("D:/4-th_Grade/3DModelViewersrcassets/assests/tree.obj");
-// const textureFileContent = readFileSync("D:/4-th_Grade/3DModelViewersrcassets/assests/01.jpg");
+const objFileContent = readFileSync("D:/Trashes/Boy.obj");
+// const objFileContent = readFileSync("D:/4-th_Grade/3DModelViewer/src/assets/tree.obj");
 globalAny.objFileContent = objFileContent;
-// globalAny.textureFileContent = textureFileContent;
