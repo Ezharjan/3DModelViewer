@@ -45,7 +45,10 @@ export default class Browser extends Vue {
 
     mounted() {
         // 何か処理
-        this.initialize();
+
+        this.InitializeLine();
+
+        // this.initialize();
         this.interaction();
         this.Start();
     }
@@ -74,14 +77,14 @@ export default class Browser extends Vue {
     }
 
     initialize() {
-        // this.camera = new THREE.PerspectiveCamera(
-        //     70,
-        //     window.innerWidth / window.innerHeight,
-        //     1,
-        //     10000
-        // );
+        this.camera = new THREE.PerspectiveCamera(
+            70,
+            window.innerWidth / window.innerHeight,
+            1,
+            10000
+        );
         // this.camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
-        this.camera = new THREE.PerspectiveCamera(70, 1, 0.01, 10000);
+        // this.camera = new THREE.PerspectiveCamera(70, 1, 0.01, 10000);
 
         // this.camera.position.x = 1000;
         // this.camera.position.y = 1000;
@@ -95,7 +98,7 @@ export default class Browser extends Vue {
 
         const light: any = new THREE.SpotLight(0xffffff, 1.5);
         // light.position.set(1003, 1002, 1002);
-        light.position.set(5, 10, 7.5);
+        light.position.set(1, 1, 1);
         this.scene.add(light);
 
         const readableFile = new Blob([this.objFileContent]);
@@ -114,7 +117,7 @@ export default class Browser extends Vue {
 
         this.renderer = new THREE.WebGLRenderer({
             //将渲染保存到缓冲区，否则获取的图片会是空的
-            preserveDrawingBuffer: false, //是否保留缓冲区直到手动清除或覆盖。默认值为false
+            preserveDrawingBuffer: true, //是否保留缓冲区直到手动清除或覆盖。默认值为false
             antialias: true
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -123,6 +126,73 @@ export default class Browser extends Vue {
         (document.getElementById("container") as HTMLDivElement).appendChild(
             this.renderer.domElement
         );
+    }
+
+    InitializeLine() {
+        this.renderer = new THREE.WebGLRenderer();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        // document.body.appendChild(this.renderer.domElement);
+
+        (document.getElementById("container") as HTMLDivElement).appendChild(
+            this.renderer.domElement
+        );
+
+        this.camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            1,
+            500
+        );
+        this.camera.position.set(0, 0, 100);
+        this.camera.lookAt(0, 0, 0);
+
+        this.scene = new THREE.Scene();
+
+        //create a blue LineBasicMaterial
+        const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+
+        const points = [];
+        points.push(new THREE.Vector3(-10, 0, 0));
+        points.push(new THREE.Vector3(0, 10, 0));
+        points.push(new THREE.Vector3(10, 0, 0));
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        const line = new THREE.Line(geometry, material);
+        this.scene.add(line);
+
+        // const cube = new THREE.BoxBufferGeometry(200, 200, 200);
+
+        // const mesh = new THREE.Mesh(geometry, material);
+        // this.scene.add(mesh);
+
+        /*  const cube = new THREE.BoxGeometry(6, 10, 8);
+
+        for (let i = 0; i < cube.faces.length; i++) {
+            const hex = Math.random() * 0xffffff;
+            cube.faces[i].color.setHex(hex);
+        }
+
+        const cubeMaterial = new THREE.MeshBasicMaterial({
+            vertexColors: THREE.FaceColors
+        });
+
+        const mesh = new THREE.Mesh(geometry, cubeMaterial);
+        this.scene.add(mesh);
+ */
+        const _geometry = new THREE.BoxGeometry(1, 1, 1);
+        const _material = new THREE.MeshBasicMaterial({
+            color: 0xff5000,
+            wireframe: true
+        });
+        const cube = new THREE.Mesh(geometry, _material);
+        this.scene.add(cube);
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(6, 20, 8),
+            material,
+             wireframe: true
+        );
+        this.scene.add(sphere);
     }
 
     interaction() {
@@ -144,14 +214,14 @@ export default class Browser extends Vue {
         });
     }
     Start() {
+        requestAnimationFrame(this.Start);
         const renderFrame = () => {
             this.controls.update();
             this.renderer.setRenderTarget(null);
-            this.renderer.render(this.scene, this.camera);
+            this.renderer.render(this.scene, this.camera); //Last important method to be called
             console.log("I am called");
         };
         renderFrame();
-        requestAnimationFrame(this.Start);
     }
 }
 </script>
