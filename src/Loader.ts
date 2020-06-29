@@ -194,7 +194,6 @@ class Loader {
                     });
                 }
                 break;
-
         }
     }
 

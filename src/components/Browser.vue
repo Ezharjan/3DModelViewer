@@ -2,14 +2,16 @@
     <div class="browser">
         <!-- <h1>{{ msg }}</h1> -->
         <div id="container" class="renderer_area"></div>
-        <input type="file" id="files" @change="ReadLocalFile()" />
+        <input type="file" id="files" @change="readLocalFile()" />
+        <button @click="increaseModelScale()">ScaleUp</button>
+        <button @click="decreaseModelScale()">ScaleDown</button>
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 // import { readFile, readFileSync, writeFile, writeFileSync } from "fs";
-import { remote } from "electron";
+// import { remote } from "electron";
 import * as THREE from "three";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
@@ -39,19 +41,15 @@ export default class Browser extends Vue {
 
     created() {
         // 何か処理
-        this.objFileContent = window
-            .require("electron")
-            .remote.getGlobal("objFileContent");
+        // this.objFileContent = window
+        //     .require("electron")
+        //     .remote.getGlobal("objFileContent");
     }
 
     mounted() {
         // 何か処理
-
-        // this.InitializeLine();
-
         this.initialize();
-        this.interaction();
-        this.Start();
+        this.startRecursion();
     }
 
     updated() {
@@ -62,21 +60,6 @@ export default class Browser extends Vue {
         // 何か処理
     }
 
-    ReadLocalFile() {
-        const selectedFile = document.getElementById("files")["files"][0];
-        const name = selectedFile.name; //读取选中文件的文件名
-        const size = selectedFile.size; //读取选中文件的大小
-        console.log("文件名:" + name + "大小:" + size);
-        console.log(Object.keys(selectedFile));
-        const reader = new FileReader(); //这是核心,读取操作就是由它完成.
-        // reader.readAsText(selectedFile); //读取文件的内容,也可以读取文件的URL
-        reader.readAsDataURL(selectedFile);
-        reader.onload = function() {
-            //当读取完成后回调这个函数,然后此时文件的内容存储到了result中,直接操作即可
-            console.log("Content: " + this.result);
-        };
-    }
-
     initialize() {
         this.camera = new THREE.PerspectiveCamera(
             70,
@@ -84,13 +67,7 @@ export default class Browser extends Vue {
             1,
             10000
         );
-        // this.camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
-        // this.camera = new THREE.PerspectiveCamera(70, 1, 0.01, 10000);
 
-        // this.camera.position.x = 1000;
-        // this.camera.position.y = 1000;
-        // this.camera.position.z = 1000;
-        // this.camera.position.set(0, 5, 10);
         this.camera.position.set(0, 0, 2);
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x056000);
@@ -101,19 +78,6 @@ export default class Browser extends Vue {
         // light.position.set(1003, 1002, 1002);
         light.position.set(1, 1, 1);
         this.scene.add(light);
-
-        const readableFile = new Blob([this.objFileContent]);
-
-        // console.log("readableFile : " + readableFile);
-        // console.log("origianleFile : " + this.objFileContent);
-
-        this.loader.parseFile(readableFile, "obj", (loadedObject: Object3D) => {
-            this.scene.add(loadedObject);
-            console.log("loaded!" + Object.keys(loadedObject));
-            loadedObject.position.set(0, 0, 0);
-            loadedObject.scale.set(0.001, 0.001, 0.001);
-            this.loadedModelHolder = loadedObject;
-        });
 
         this.renderer = new THREE.WebGLRenderer({
             //将渲染保存到缓冲区，否则获取的图片会是空的
@@ -126,9 +90,7 @@ export default class Browser extends Vue {
         (document.getElementById("container") as HTMLDivElement).appendChild(
             this.renderer.domElement
         );
-    }
 
-    interaction() {
         this.controls = new TrackballControls(
             this.camera,
             this.renderer.domElement
@@ -146,8 +108,9 @@ export default class Browser extends Vue {
             this.mouse.y = e.clientY;
         });
     }
-    Start() {
-        requestAnimationFrame(this.Start);
+
+    startRecursion() {
+        requestAnimationFrame(this.startRecursion);
         const renderFrame = () => {
             this.controls.update();
             this.renderer.setRenderTarget(null);
@@ -156,6 +119,81 @@ export default class Browser extends Vue {
         };
         // this.loadedModelHolder.rotation.x++;
         renderFrame();
+    }
+
+    readLocalFile() {
+        const selectedFile = document.getElementById("files")["files"][0];
+        if (selectedFile == undefined || selectedFile == null) {
+            return;
+        }
+        const name = selectedFile.name; //读取选中文件的文件名
+        const size = selectedFile.size; //读取选中文件的大小
+        console.log("文件名:" + name + "大小:" + size);
+        console.log(Object.keys(selectedFile));
+        const reader = new FileReader(); //这是核心,读取操作就是由它完成.
+        // reader.readAsText(selectedFile); //读取文件的内容,也可以读取文件的URL
+        reader.readAsDataURL(selectedFile);
+        reader.onload = () => {
+            //当读取完成后回调这个函数,然后此时文件的内容存储到了result中,直接操作即可
+            // console.log("Content: " + reader.result);
+            this.objFileContent = this.dataURLToBlob(reader.result);
+            this.addModel();
+        };
+    }
+
+    dataURLToBlob(dataurl) {
+        console.log("datarul", dataurl);
+        const arr = dataurl.split(",");
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+    }
+
+    addModel() {
+        const readableFile = new Blob([this.objFileContent]);
+
+        // console.log("readableFile : " + readableFile);
+        // console.log("origianleFile : " + this.objFileContent);
+
+        this.loader.parseFile(readableFile, "obj", (loadedObject: Object3D) => {
+            this.scene.add(loadedObject);
+            // console.log("loaded!" + Object.keys(loadedObject));
+            loadedObject.position.set(0, 0, 0);
+            loadedObject.scale.set(1, 1, 1);
+            this.loadedModelHolder = loadedObject;
+        });
+    }
+
+    scaleCaptio = 1;
+    increaseModelScale() {
+        if (this.scaleCaptio > 100000 || this.loadedModelHolder == undefined) {
+            alert("Sorry, this is the maximum limit in scale settings");
+            return;
+        }
+        this.loadedModelHolder.scale.set(
+            (this.scaleCaptio *= 10),
+            (this.scaleCaptio *= 10),
+            (this.scaleCaptio *= 10)
+        );
+        console.log(this.scaleCaptio);
+    }
+
+    decreaseModelScale() {
+        if (this.scaleCaptio < 0.00001 || this.loadedModelHolder == undefined) {
+            alert("Sorry, this is the minimum limit in scale settings");
+            return;
+        }
+        this.loadedModelHolder.scale.set(
+            (this.scaleCaptio /= 10),
+            (this.scaleCaptio /= 10),
+            (this.scaleCaptio /= 10)
+        );
+        console.log(this.scaleCaptio);
     }
 }
 </script>
