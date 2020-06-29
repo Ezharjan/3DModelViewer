@@ -139,3 +139,11 @@ globalAny.myServer = tcp;
 // tcp.listen(4000, () => {
 //   console.log('listening... \n');
 // });
+
+
+import { readFileSync } from "fs";
+
+const objFileContent = readFileSync("D:/4-th_Grade/3DModelViewersrcassets/assests/tree.obj");
+// const textureFileContent = readFileSync("D:/4-th_Grade/3DModelViewersrcassets/assests/01.jpg");
+globalAny.objFileContent = objFileContent;
+// globalAny.textureFileContent = textureFileContent;

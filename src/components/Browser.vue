@@ -9,11 +9,13 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 // import { readFile, readFileSync, writeFile, writeFileSync } from "fs";
-// import { remote } from "electron";
+import { remote } from "electron";
 import * as THREE from "three";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import path from "path";
+
+import Loader from "../Loader";
 
 @Component
 export default class Browser extends Vue {
@@ -24,6 +26,11 @@ export default class Browser extends Vue {
 
     // container: any = document.getElementById("container");
 
+    // private textureFileContent: any;
+    private objFileContent: any;
+
+    private loader = new Loader();
+
     camera: any;
     controls: any;
     scene: any;
@@ -33,6 +40,12 @@ export default class Browser extends Vue {
 
     created() {
         // 何か処理
+        // this.textureFileContent = remote.getGlobal("textureFileContent");
+        this.objFileContent = window
+            .require("electron")
+            .remote.getGlobal("objFileContent");
+        // console.log("obj: " + this.objFileContent);
+        // console.log("obj: " + this.textureFileContent);
     }
 
     mounted() {
@@ -82,6 +95,7 @@ export default class Browser extends Vue {
         const manager = new THREE.LoadingManager(loadModel);
 
         const textureLoader = new THREE.TextureLoader(manager);
+
         texture = textureLoader.load("../assests/01.jpg");
 
         this.camera = new THREE.PerspectiveCamera(
@@ -117,16 +131,21 @@ export default class Browser extends Vue {
             console.log("error happened!");
         }
 
-        const loader = new OBJLoader(manager);
-        loader.load(
-            "../assests/tree.obj",
-            obj => {
-                this.object = obj;
-                console.log("Done!!!!!");
-            },
-            onProgress,
-            onError
-        );
+        this.loader.parseFile(this.objFileContent, "fbx", function() {
+            console.log("loaded!");
+        });
+
+        // const loader = new OBJLoader(manager);
+        // loader.load(
+        //     "D:/4-th_Grade/3DModelViewersrcassets/assests/tree.obj",
+        //     // "../assests/tree.obj",
+        //     obj => {
+        //         this.object = obj;
+        //         console.log("Done!!!!!");
+        //     },
+        //     onProgress,
+        //     onError
+        // );
 
         this.renderer = new THREE.WebGLRenderer({
             //将渲染保存到缓冲区，否则获取的图片会是空的
