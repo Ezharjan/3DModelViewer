@@ -35,6 +35,7 @@ export default class Browser extends Vue {
     renderer: any;
     mouse = new THREE.Vector2();
     object: any;
+    loadedModelHolder: Object3D;
 
     created() {
         // 何か処理
@@ -46,9 +47,9 @@ export default class Browser extends Vue {
     mounted() {
         // 何か処理
 
-        this.InitializeLine();
+        // this.InitializeLine();
 
-        // this.initialize();
+        this.initialize();
         this.interaction();
         this.Start();
     }
@@ -106,13 +107,12 @@ export default class Browser extends Vue {
         // console.log("readableFile : " + readableFile);
         // console.log("origianleFile : " + this.objFileContent);
 
-        this.loader.parseFile(readableFile, "obj", function(
-            loadedObject: Object3D
-        ) {
+        this.loader.parseFile(readableFile, "obj", (loadedObject: Object3D) => {
+            this.scene.add(loadedObject);
             console.log("loaded!" + Object.keys(loadedObject));
             loadedObject.position.set(0, 0, 0);
-            loadedObject.scale.set(1, 1, 1);
-            // console.log(loadedObject.type);
+            loadedObject.scale.set(0.001, 0.001, 0.001);
+            this.loadedModelHolder = loadedObject;
         });
 
         this.renderer = new THREE.WebGLRenderer({
@@ -126,50 +126,6 @@ export default class Browser extends Vue {
         (document.getElementById("container") as HTMLDivElement).appendChild(
             this.renderer.domElement
         );
-    }
-
-    InitializeLine() {
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        // document.body.appendChild(this.renderer.domElement);
-
-        (document.getElementById("container") as HTMLDivElement).appendChild(
-            this.renderer.domElement
-        );
-
-        this.camera = new THREE.PerspectiveCamera(
-            45,
-            window.innerWidth / window.innerHeight,
-            1,
-            500
-        );
-        this.camera.position.set(0, 0, 100);
-        this.camera.lookAt(0, 0, 0);
-
-        this.scene = new THREE.Scene();
-
-        //create a blue LineBasicMaterial
-        const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-
-        const points = [];
-        points.push(new THREE.Vector3(-10, 0, 0));
-        points.push(new THREE.Vector3(0, 10, 0));
-        points.push(new THREE.Vector3(10, 0, 0));
-
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-        const line = new THREE.Line(geometry, material);
-        this.scene.add(line);
-
-        const _material = new THREE.MeshBasicMaterial({
-            color: 0xff5000,
-            wireframe: true
-        });
-        const sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(8, 10, 8),
-            _material
-        );
-        this.scene.add(sphere);
     }
 
     interaction() {
@@ -198,6 +154,7 @@ export default class Browser extends Vue {
             this.renderer.render(this.scene, this.camera); //Last important method to be called
             console.log("I am called");
         };
+        // this.loadedModelHolder.rotation.x++;
         renderFrame();
     }
 }
