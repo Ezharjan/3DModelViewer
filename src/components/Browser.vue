@@ -189,8 +189,7 @@ export default class Browser extends Vue {
         this.scene.add(cube);
         const sphere = new THREE.Mesh(
             new THREE.SphereGeometry(6, 20, 8),
-            material,
-             wireframe: true
+            material
         );
         this.scene.add(sphere);
     }
