@@ -161,35 +161,13 @@ export default class Browser extends Vue {
         const line = new THREE.Line(geometry, material);
         this.scene.add(line);
 
-        // const cube = new THREE.BoxBufferGeometry(200, 200, 200);
-
-        // const mesh = new THREE.Mesh(geometry, material);
-        // this.scene.add(mesh);
-
-        /*  const cube = new THREE.BoxGeometry(6, 10, 8);
-
-        for (let i = 0; i < cube.faces.length; i++) {
-            const hex = Math.random() * 0xffffff;
-            cube.faces[i].color.setHex(hex);
-        }
-
-        const cubeMaterial = new THREE.MeshBasicMaterial({
-            vertexColors: THREE.FaceColors
-        });
-
-        const mesh = new THREE.Mesh(geometry, cubeMaterial);
-        this.scene.add(mesh);
- */
-        const _geometry = new THREE.BoxGeometry(1, 1, 1);
         const _material = new THREE.MeshBasicMaterial({
             color: 0xff5000,
             wireframe: true
         });
-        const cube = new THREE.Mesh(geometry, _material);
-        this.scene.add(cube);
         const sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(6, 20, 8),
-            material
+            new THREE.SphereGeometry(8, 10, 8),
+            _material
         );
         this.scene.add(sphere);
     }
