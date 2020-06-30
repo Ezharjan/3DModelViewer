@@ -1,6 +1,6 @@
 'use strict'
 import path from 'path'
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, Menu, MenuItem, remote } from 'electron'
 import {
   createProtocol,
   /* installVueDevtools */
@@ -22,9 +22,10 @@ function createWindow() {
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       nodeIntegration: (process.env
         .ELECTRON_NODE_INTEGRATION as unknown) as boolean,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      // devTools: false//在这里直接关闭之后用户以后再也打开devTools
     }
-  })
+  });
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -76,7 +77,9 @@ app.on('ready', async () => {
     // }
 
   }
-  createWindow()
+  createWindow();
+  // let _win = new BrowserWindow()
+  win.webContents.closeDevTools();//通过这种方式在发布之后关闭decTool,用户可以自行打开
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -142,6 +145,7 @@ globalAny.myServer = tcp;
 
 
 import { readFileSync } from "fs";
+import { Console } from 'console'
 
 const objFileContent = function ReadFileSync(filePath: string) {
   readFileSync(filePath);
@@ -149,3 +153,51 @@ const objFileContent = function ReadFileSync(filePath: string) {
 // readFileSync("D:/Trashes/Boy.obj");
 // const objFileContent = readFileSync("D:/4-th_Grade/3DModelViewer/src/assets/tree.obj");
 globalAny.objFileContent = objFileContent;
+
+
+
+// import { inputFunction } from "./components/Browser.vue";
+// import Browser from "./components/Browser.vue";
+
+
+// const t = remote.getGlobal("getInputFunction");
+
+//设置窗口界面菜单的方式
+
+var menu = new Menu();
+menu.append(new MenuItem({
+  label: 'File',
+  submenu: [
+    {
+      label: "Import",
+      click: () => {
+        console.log("Import clicked!");
+      },
+      accelerator: (function () {
+        if (process.platform == 'darwin')
+          return 'Command+O';
+        else
+          return 'Ctrl+O';
+      })(),
+    },
+    {
+      label: 'Toggle Developer Tools',
+      accelerator: (function () {
+        if (process.platform == 'darwin')
+          return 'Alt+Command+I';
+        else
+          return 'Ctrl+Shift+I';
+      })(),
+      click: function (item, focusedWindow: any) {
+        if (focusedWindow) focusedWindow.toggleDevTools();
+      }
+    }
+  ],
+  click: function () {
+    console.log('item 1 clicked');
+  }
+}));
+
+
+Menu.setApplicationMenu(menu);//This must be called!
+
