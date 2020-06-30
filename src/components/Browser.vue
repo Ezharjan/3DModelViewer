@@ -129,6 +129,10 @@ export default class Browser extends Vue {
         const name = selectedFile.name; //读取选中文件的文件名
         const size = selectedFile.size; //读取选中文件的大小
         console.log("文件名:" + name + "大小:" + size);
+        const fileExtension = name.substring(
+            name.lastIndexOf(".") + 1,
+            name.length
+        );
         console.log(Object.keys(selectedFile));
         const reader = new FileReader(); //这是核心,读取操作就是由它完成.
         // reader.readAsText(selectedFile); //读取文件的内容,也可以读取文件的URL
@@ -137,7 +141,8 @@ export default class Browser extends Vue {
             //当读取完成后回调这个函数,然后此时文件的内容存储到了result中,直接操作即可
             // console.log("Content: " + reader.result);
             this.objFileContent = this.dataURLToBlob(reader.result);
-            this.addModel();
+            console.log("fileExtension is: " + fileExtension);
+            this.addModel(fileExtension);
         };
     }
 
@@ -154,44 +159,49 @@ export default class Browser extends Vue {
         return new Blob([u8arr], { type: mime });
     }
 
-    addModel() {
+    addModel(fileExtension: string) {
         const readableFile = new Blob([this.objFileContent]);
 
         // console.log("readableFile : " + readableFile);
         // console.log("origianleFile : " + this.objFileContent);
 
-        this.loader.parseFile(readableFile, "obj", (loadedObject: Object3D) => {
-            this.scene.add(loadedObject);
-            // console.log("loaded!" + Object.keys(loadedObject));
-            loadedObject.position.set(0, 0, 0);
-            loadedObject.scale.set(1, 1, 1);
-            this.loadedModelHolder = loadedObject;
-        });
+        // this.loader.parseFile(readableFile, "fbx", (loadedObject: Object3D) => {
+        this.loader.parseFile(
+            readableFile,
+            fileExtension,
+            (loadedObject: Object3D) => {
+                this.scene.add(loadedObject);
+                // console.log("loaded!" + Object.keys(loadedObject));
+                loadedObject.position.set(0, 0, 0);
+                loadedObject.scale.set(1, 1, 1);
+                this.loadedModelHolder = loadedObject;
+            }
+        );
     }
 
     scaleCaptio = 1;
     increaseModelScale() {
-        if (this.scaleCaptio > 100000 || this.loadedModelHolder == undefined) {
-            alert("Sorry, this is the maximum limit in scale settings");
-            return;
-        }
+        // if (this.scaleCaptio > 100000 || this.loadedModelHolder == undefined) {
+        //     alert("Sorry, this is the maximum limit in scale settings");
+        //     return;
+        // }
         this.loadedModelHolder.scale.set(
             (this.scaleCaptio *= 10),
-            (this.scaleCaptio *= 10),
-            (this.scaleCaptio *= 10)
+            this.scaleCaptio,
+            this.scaleCaptio
         );
         console.log(this.scaleCaptio);
     }
 
     decreaseModelScale() {
-        if (this.scaleCaptio < 0.00001 || this.loadedModelHolder == undefined) {
-            alert("Sorry, this is the minimum limit in scale settings");
-            return;
-        }
+        // if (this.scaleCaptio < 0.00001 || this.loadedModelHolder == undefined) {
+        //     alert("Sorry, this is the minimum limit in scale settings");
+        //     return;
+        // }
         this.loadedModelHolder.scale.set(
             (this.scaleCaptio /= 10),
-            (this.scaleCaptio /= 10),
-            (this.scaleCaptio /= 10)
+            this.scaleCaptio,
+            this.scaleCaptio
         );
         console.log(this.scaleCaptio);
     }
